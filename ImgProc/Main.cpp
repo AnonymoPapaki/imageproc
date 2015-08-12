@@ -37,7 +37,8 @@ BOOL CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_COMMAND:
 	{
-		if (LOWORD(wParam) == IDOK)
+		if (LOWORD(wParam) == IDC_BTN_BLUR
+		|| LOWORD(wParam) == IDC_BTN_EDGE)
 		{
 			HDC hDc = GetDC(hWnd);
 			BITMAPINFO info = { 0 };
@@ -46,10 +47,7 @@ BOOL CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			GetDIBits(hDc, hBitmapOriginal, 0, 0, NULL, &info, DIB_RGB_COLORS);
 			int bufSize = info.bmiHeader.biHeight * info.bmiHeader.biWidth * (info.bmiHeader.biBitCount / 8);
 			unsigned char *buf = new unsigned char[bufSize];
-			
-			
-			
-			
+
 			info.bmiHeader.biCompression = 0;
 			GetDIBits(hDc, hBitmapOriginal, 0, info.bmiHeader.biHeight, buf, &info, DIB_RGB_COLORS);
 			Texture t = CreateTextureFromRawData(buf, info.bmiHeader.biHeight, info.bmiHeader.biWidth, info.bmiHeader.biBitCount / 8, 0, 1, 2);
@@ -60,8 +58,19 @@ BOOL CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				0.11111f, 0.11111f, 0.11111f,
 				0.11111f, 0.11111f, 0.11111f
 			};
+			float edgeKernel[] =
+			{
+				1.f, 0.f, -1.f,
+				0.f, 0.f, 0.f,
+				-1.f, 0.f, 1.f
+			};
+			float *selectedKernel = NULL;
+			if (LOWORD(wParam) == IDC_BTN_BLUR)
+				selectedKernel = blurKernel;
+			else
+				selectedKernel = edgeKernel;
 			Texture t1;
-			PixelShader(t, &t1, KernelShader, blurKernel, 3);
+			PixelShader(t, &t1, KernelShader, selectedKernel, 3);
 			TextureToRawData(t1, buf, info.bmiHeader.biHeight, info.bmiHeader.biWidth, info.bmiHeader.biBitCount / 8, 0, 1, 2);
 			DeleteTexture(t);
 			DeleteTexture(t1);
@@ -70,6 +79,8 @@ BOOL CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			delete[] buf;
 			SendMessage(GetDlgItem(hWnd, IDC_IMAGE), STM_SETIMAGE, IMAGE_BITMAP, (LRESULT)hBitmapEdited);
 		}
+		else if (LOWORD(wParam) == IDC_BTN_RESET)
+			SendMessage(GetDlgItem(hWnd, IDC_IMAGE), STM_SETIMAGE, IMAGE_BITMAP, (LRESULT)hBitmapOriginal);
 	}
 		break;
 	default:

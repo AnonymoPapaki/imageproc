@@ -11,6 +11,8 @@ struct Texture
 	Pixel *pixels;
 };
 typedef Pixel(*Shader)(const Pixel*, int sampleSize,void*);
+
+
 Texture CreateTextureFromRawData(const unsigned char *data, int height, int width, int bytePerPixel, int rIdx, int gIdx, int bIdx);
 void DeleteTexture(Texture t);
 void TextureToRawData(const Texture texture, unsigned char *data, int height, int width, int bytePerPixel, int rIdx, int gIdx, int bIdx);
